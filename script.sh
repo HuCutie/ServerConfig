@@ -180,7 +180,7 @@ EOF
 }
 
 
-function install_apps() {
+function installapps() {
     # Function to check if a package is installed
     is_package_installed() {
         dpkg -l "$1" | grep -qE "^ii\s+$1"
@@ -222,6 +222,7 @@ function install_apps() {
 
     # Install V2RayA dependencies
     install_package apt-transport-https
+    install_package v2ray
 
     # Install V2RayA
     if ! is_package_installed v2raya; then
@@ -243,7 +244,7 @@ function install_apps() {
     fi
 }
 
-function create_users() {
+function createusers() {
     # Specify the list of usernames
     local usernames=("hub" "huxg" "chendh" "chenq" "gaowc" "lijw" "lixx" "maopc" "tangps" "wangd" "wangxy" "xuy" "yangcx" "zhangt" "zouyt")
     # Common password for all users
@@ -261,7 +262,7 @@ function create_users() {
     done
 }
 
-function config_users() {
+function configusers() {
     # Specify the list of usernames
     local usernames=("hub" "huxg" "chendh" "chenq" "gaowc" "lijw" "lixx" "maopc" "tangps" "wangd" "wangxy" "xuy" "yangcx" "zhangt" "zouyt" "user")
 
