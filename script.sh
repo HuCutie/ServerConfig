@@ -60,13 +60,24 @@ function installdocker() {
     local docker_codename
     docker_codename=$(. /etc/os-release && echo "$VERSION_CODENAME")
 
-    sudo install -m 0755 -d /etc/apt/keyrings
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o "$docker_keyring"
-    sudo chmod a+r "$docker_keyring"
+    # Check if the keyring file already exists
+    if [ ! -f "$docker_keyring" ]; then
+        sudo install -m 0755 -d /etc/apt/keyrings
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o "$docker_keyring"
+        sudo chmod a+r "$docker_keyring"
+    else
+        echo "Keyring file '$docker_keyring' already exists. Skipping keyring setup."
+    fi
 
-    # Add the repository to Apt sources:
-    echo "deb [arch=${docker_architecture} signed-by=${docker_keyring}] ${docker_repository} ${docker_codename} stable" | \
-        sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    # Check if the repository list file already exists
+    local repo_list="/etc/apt/sources.list.d/docker.list"
+    if [ ! -f "$repo_list" ]; then
+        # Add the repository to Apt sources:
+        echo "deb [arch=${docker_architecture} signed-by=${docker_keyring}] ${docker_repository} ${docker_codename} stable" | \
+            sudo tee "$repo_list" > /dev/null
+    else
+        echo "Repository list file '$repo_list' already exists. Skipping repository setup."
+    fi
 
     sudo apt-get update
     sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
