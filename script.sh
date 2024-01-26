@@ -2,8 +2,8 @@
 
 function mountdisks() {
     # 定义磁盘设备列表和对应的挂载点列表
-    declare -a devices=("/dev/sda" "/dev/sdb" "/dev/nvme1n1")  # 替换为你的磁盘设备列表
-    declare -a mount_points=("/data" "/data1" "/ssd")  # 替换为你的挂载点列表
+    devices=("/dev/sdb" "/dev/sdc" "/dev/nvme0n1" "/dev/nvme1n1")  # 替换为你的磁盘设备列表
+    mount_points=("/ssd1" "/ssd2" "/ssd" "/data")  # 替换为你的挂载点列表
 
     # 确保设备列表和挂载点列表长度相同
     if [ ${#devices[@]} -ne ${#mount_points[@]} ]; then
@@ -14,7 +14,7 @@ function mountdisks() {
     # 循环处理每个磁盘
     for ((i=0; i<${#devices[@]}; i++)); do
         # 格式化硬盘为ext4格式，适用于初次执行
-        # mkfs -t ext4 ${devices[$i]}
+        # echo "y" | mkfs -t ext4 ${devices[$i]}
 
         device="${devices[$i]}"
         mount_point="${mount_points[$i]}"
@@ -31,7 +31,10 @@ function mountdisks() {
                 # 获取磁盘UUID
                 uuid=$(blkid -s UUID -o value "$device")
 
-                if [ -n "$uuid" ]; then
+                # 检查是否已经在 /etc/fstab 中存在相应的挂载信息
+                if grep -qs "$uuid" /etc/fstab; then
+                    echo "UUID $uuid is already present in /etc/fstab. Skipping."
+                else
                     # 备份/etc/fstab文件
                     cp /etc/fstab /etc/fstab.bak
 
@@ -39,8 +42,6 @@ function mountdisks() {
                     echo "UUID=$uuid $mount_point ext4 defaults 0 0" >> /etc/fstab
                     mount "$device" "$mount_point"
                     echo "Mounted $device at $mount_point with UUID $uuid"
-                else
-                    echo "Failed to get UUID for $device"
                 fi
             else
                 echo "$device is not formatted as ext4. Please format it accordingly."
