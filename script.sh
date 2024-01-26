@@ -279,8 +279,12 @@ function configusers() {
 
     for username in "${usernames[@]}"; do
         if id "$username" &>/dev/null; then
-            usermod -aG docker "$username"
-            echo "Added $username to Docker group"
+            if groups "$username" | grep -qE '\bdocker\b'; then
+                echo "User $username is already a member of the Docker group."
+            else
+                usermod -aG docker "$username"
+                echo "Added $username to Docker group"
+            fi
         else
             echo "User $username not found."
         fi
