@@ -14,7 +14,7 @@ function mountdisks() {
     # 循环处理每个磁盘
     for ((i=0; i<${#devices[@]}; i++)); do
         # 格式化硬盘为ext4格式，适用于初次执行
-        # echo "y" | mkfs -t ext4 ${devices[$i]}
+        echo "y" | mkfs -t ext4 ${devices[$i]}
 
         device="${devices[$i]}"
         mount_point="${mount_points[$i]}"
