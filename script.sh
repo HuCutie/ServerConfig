@@ -214,6 +214,7 @@ function installapps() {
     install_package vim
     install_package htop
     install_package git
+    install_package neofetch
 
     # Install pip3 if not installed
     if ! command -v pip3 &> /dev/null; then
