@@ -249,12 +249,17 @@ function installapps() {
         # Update package lists
         sudo apt update
 
-        # Install V2RayA
         sudo apt install -y v2raya
         echo "V2RayA installed."
     else
         echo "V2RayA already installed."
     fi
+
+    # Install xrdp
+    install_package xfce4
+    install_package xfce4-goodies
+    install_package xrdp
+    sudo systemctl start xrdp
 }
 
 function createusers() {
