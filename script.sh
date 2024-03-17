@@ -261,6 +261,9 @@ function installapps() {
     install_package xfce4-goodies
     install_package xrdp
     sudo systemctl start xrdp
+
+    # Install ftp
+    install_package vsftpd
 }
 
 function createusers() {
