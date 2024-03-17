@@ -215,6 +215,7 @@ function installapps() {
     install_package htop
     install_package git
     install_package neofetch
+    install_package lolcat
 
     # Install pip3 if not installed
     if ! command -v pip3 &> /dev/null; then
