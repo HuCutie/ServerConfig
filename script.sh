@@ -196,6 +196,68 @@ EOF
     echo "Script has been installed and created at $script_path, now you can run command 'dock'."
 }
 
+function configdirown() {
+    # 设置可执行文件路径
+    script_path="/usr/local/bin/chowndir"
+
+    # 创建可执行文件
+    cat << 'EOF' > "$script_path"
+#!/bin/bash
+
+# Define color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+# Function to process directories
+process_directories() {
+  local parent_dir=$1
+  
+  echo -e "${CYAN}Processing directory: $parent_dir${NC}"
+  
+  if [ -d "$parent_dir" ]; then
+    for dir in "$parent_dir"/*; do
+      if [ -d "$dir" ]; then
+        echo -e "${YELLOW}Found directory: $dir${NC}"
+        
+        # Get the owner of the directory
+        owner=$(stat -c '%U' "$dir")
+        
+        echo -e "${CYAN}Current owner of $dir: $owner${NC}"
+        
+        # Change ownership recursively
+        echo -e "${CYAN}Changing ownership of $dir to $owner:$owner${NC}"
+        chown -R "$owner:$owner" "$dir"
+        
+        if [ $? -eq 0 ]; then
+          echo -e "${GREEN}Successfully changed ownership of $dir to $owner:$owner${NC}"
+        else
+          echo -e "${RED}Failed to change ownership of $dir${NC}"
+        fi
+        
+      else
+        echo -e "${RED}$dir is not a directory, skipping...${NC}"
+      fi
+    done
+  else
+    echo -e "${RED}$parent_dir does not exist.${NC}"
+  fi
+}
+
+# Process /data
+process_directories "/data"
+
+# Process /data1 if it exists
+process_directories "/data1"
+EOF
+
+    # 添加执行权限
+    chmod +x "$script_path"
+
+    echo "Script has been installed and created at $script_path, now you can run command 'chowndir'."
+}
 
 function installapps() {
     # Function to check if a package is installed
@@ -310,34 +372,38 @@ function configusers() {
 
 function main()
 {
-    echo "Mounting disks..."
-    mountdisks
+    # echo "Mounting disks..."
+    # mountdisks
+    # echo "Completed"
+
+    # echo "Installing some apps..."
+    # installapps
+    # echo "Completed"
+
+    # echo "Installing Docker engine..."
+    # installdocker
+    # echo "Completed"
+
+    # echo "Editing Docker configuration file..."
+    # configdocker
+    # echo "Completed"
+
+    # echo "Editing ssh configuration file..."
+    # configssh
+    # echo "Completed"
+
+    # echo "Creating dock command..."
+    # configdock
+    # echo "Completed"
+
+    echo "Creating chowndir command..."
+    configdirown
     echo "Completed"
 
-    echo "Installing some apps..."
-    installapps
-    echo "Completed"
-
-    echo "Installing Docker engine..."
-    installdocker
-    echo "Completed"
-
-    echo "Editing Docker configuration file..."
-    configdocker
-    echo "Completed"
-
-    echo "Editing ssh configuration file..."
-    configssh
-    echo "Completed"
-
-    echo "Creating dock command..."
-    configdock
-    echo "Completed"
-
-    echo "Creating and Editing users..."
-    createusers
-    configusers
-    echo "Completed"
+    # echo "Creating and Editing users..."
+    # createusers
+    # configusers
+    # echo "Completed"
 }
 
 main
