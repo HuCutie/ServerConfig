@@ -51,39 +51,44 @@ function mountdisks() {
 }
 
 function installdocker() {
-    # Add Docker's official GPG key:
+    # 更新包列表并安装必要的包
     sudo apt-get update
     sudo apt-get install -y ca-certificates curl gnupg
 
-    local docker_keyring="/etc/apt/keyrings/docker.gpg"
+    # 定义变量
+    local docker_keyring="/etc/apt/keyrings/docker.asc"
     local docker_repository="https://download.docker.com/linux/ubuntu"
     local docker_architecture="$(dpkg --print-architecture)"
     local docker_codename
     docker_codename=$(. /etc/os-release && echo "$VERSION_CODENAME")
 
-    # Check if the keyring file already exists
-    if [ ! -f "$docker_keyring" ]; then
+    # 检查并创建 keyring 目录
+    if [ ! -d "/etc/apt/keyrings" ]; then
         sudo install -m 0755 -d /etc/apt/keyrings
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o "$docker_keyring"
+    fi
+
+    # 下载并设置 Docker 的 GPG 密钥
+    if [ ! -f "$docker_keyring" ]; then
+        sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o "$docker_keyring"
         sudo chmod a+r "$docker_keyring"
     else
         echo "Keyring file '$docker_keyring' already exists. Skipping keyring setup."
     fi
 
-    # Check if the repository list file already exists
+    # 添加 Docker 存储库到 Apt 源列表
     local repo_list="/etc/apt/sources.list.d/docker.list"
     if [ ! -f "$repo_list" ]; then
-        # Add the repository to Apt sources:
         echo "deb [arch=${docker_architecture} signed-by=${docker_keyring}] ${docker_repository} ${docker_codename} stable" | \
             sudo tee "$repo_list" > /dev/null
     else
         echo "Repository list file '$repo_list' already exists. Skipping repository setup."
     fi
 
+    # 更新包列表并安装 Docker
     sudo apt-get update
     sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-    echo "Docker installation and configuration completed."
+    echo "Docker installation completed."
 }
 
 function configdocker() {
@@ -238,7 +243,6 @@ function installapps() {
 
     # Install V2RayA dependencies
     install_package apt-transport-https
-    install_package v2ray
 
     # Install V2RayA
     if ! is_package_installed v2raya; then
@@ -307,7 +311,11 @@ function configusers() {
 function main()
 {
     echo "Mounting disks..."
-    # mountdisks
+    mountdisks
+    echo "Completed"
+
+    echo "Installing some apps..."
+    installapps
     echo "Completed"
 
     echo "Installing Docker engine..."
@@ -324,10 +332,6 @@ function main()
 
     echo "Creating dock command..."
     configdock
-    echo "Completed"
-
-    echo "Installing some apps..."
-    installapps
     echo "Completed"
 
     echo "Creating and Editing users..."
