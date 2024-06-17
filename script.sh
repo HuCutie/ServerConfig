@@ -215,6 +215,7 @@ function installapps() {
     install_package htop
     install_package git
     install_package neofetch
+    sudo update-pciids
     install_package lolcat
 
     # Install pip3 if not installed
@@ -225,6 +226,7 @@ function installapps() {
     else
         echo "pip3 installed."
     fi
+    pip3 install bottle gpustat
 
     # Upgrade nvitop
     pip3 install --upgrade nvitop
