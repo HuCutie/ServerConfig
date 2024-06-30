@@ -37,7 +37,7 @@ mountdisks() {
 
     if [ ${#devices[@]} -ne ${#mount_points[@]} ]; then
         log "ERROR" "Device and mount point lists have different lengths."
-        exit 1
+        return 1
     fi
 
     for ((i=0; i<${#devices[@]}; i++)); do
@@ -337,84 +337,49 @@ neofetch | lolcat'
 
 # Main function
 main() {
-    log "INFO" "Mounting disks..."
+    while true; do
+        echo "-------------------------------------"
+        echo "        Script Menu Options           "
+        echo "-------------------------------------"
+        echo "1. Mount Disks"
+        echo "2. Install Applications"
+        echo "3. Configure SSH and Neoetch"
+        echo "4. Create 'dock' and 'chowndir' Command"
+        echo "5. Create Users"
+        echo "6. Install Docker"
+        echo "7. Configure Docker"
+        echo "8. Configure Users"
+        echo "0. Execute all functions and exit"
+        echo "-------------------------------------"
+        read -p "Enter your choice (0-9): " choice
+
+        case "$choice" in
+            1) log "INFO" "Mounting disks..."; mountdisks ;;
+            2) log "INFO" "Installing applications..."; installapps ;;
+            3) log "INFO" "Configuring SSH and neofetch..."; configssh; configneofetch;;
+            4) log "INFO" "Creating 'dock' and 'chowndir' command..."; configdock;configdirown ;;
+            5) log "INFO" "Creating users..."; createusers ;;
+            6) log "INFO" "Installing Docker..."; installdocker ;;
+            7) log "INFO" "Configuring Docker..."; configdocker ;;
+            8) log "INFO" "Configuring users..."; configusers ;;
+            0) log "INFO" "Executing all functions..."; main_functions; log "SUCCESS" "All functions executed successfully. Exiting..."; return ;;
+            *) log "WARNING" "Invalid option. Please enter a number between 0 and 9." ;;
+        esac
+    done
+}
+
+# Function to execute all main functions
+main_functions() {
     mountdisks
-    if [ $? -ne 0 ]; then
-        log "ERROR" "Failed to mount disks."
-        exit 1
-    fi
-    log "SUCCESS" "Disks mounted."
-
-    log "INFO" "Installing applications..."
-    installapps
-    if [ $? -ne 0 ]; then
-        log "ERROR" "Failed to install applications."
-        exit 1
-    fi
-    log "SUCCESS" "Applications installed."
-
-    log "INFO" "Configuring SSH..."
-    configssh
-    if [ $? -ne 0 ]; then
-        log "ERROR" "Failed to configure SSH."
-        exit 1
-    fi
-    log "SUCCESS" "SSH configured."
-
-    log "INFO" "Creating dock command..."
-    configdock
-    if [ $? -ne 0 ]; then
-        log "ERROR" "Failed to create dock command."
-        exit 1
-    fi
-    log "SUCCESS" "Dock command created."
-
-    log "INFO" "Creating chowndir command..."
-    configdirown
-    if [ $? -ne 0 ]; then
-        log "ERROR" "Failed to create chowndir command."
-        exit 1
-    fi
-    log "SUCCESS" "Chowndir command created."
-
-    log "INFO" "Creating and configuring users..."
-    createusers
-    if [ $? -ne 0 ]; then
-        log "ERROR" "Failed to create users."
-        exit 1
-    fi
-    log "SUCCESS" "Users created."
-
-    log "INFO" "Installing Docker engine..."
     installdocker
-    if [ $? -ne 0 ]; then
-        log "ERROR" "Failed to install Docker engine."
-        exit 1
-    fi
-    log "SUCCESS" "Docker engine installed."
-
-    log "INFO" "Configuring Docker..."
     configdocker
-    if [ $? -ne 0 ]; then
-        log "ERROR" "Failed to configure Docker."
-        exit 1
-    fi
-    log "SUCCESS" "Docker configured."
-
+    configssh
+    configdock
+    configdirown
+    installapps
+    createusers
     configusers
-    if [ $? -ne 0 ]; then
-        log "ERROR" "Failed to configure users."
-        exit 1
-    fi
-    log "SUCCESS" "Users configured."
-
-    log "INFO" "Creating neofetch configuration..."
     configneofetch
-    if [ $? -ne 0 ]; then
-        log "ERROR" "Failed to create neofetch configuration."
-        exit 1
-    fi
-    log "SUCCESS" "Neofetch configuration created."
 }
 
 main
