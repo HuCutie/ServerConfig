@@ -327,37 +327,73 @@ configusers() {
 main() {
     log "INFO" "Mounting disks..."
     mountdisks
+    if [ $? -ne 0 ]; then
+        log "ERROR" "Failed to mount disks."
+        exit 1
+    fi
     log "SUCCESS" "Disks mounted."
 
     log "INFO" "Installing applications..."
     installapps
+    if [ $? -ne 0 ]; then
+        log "ERROR" "Failed to install applications."
+        exit 1
+    fi
     log "SUCCESS" "Applications installed."
 
     log "INFO" "Configuring SSH..."
     configssh
+    if [ $? -ne 0 ]; then
+        log "ERROR" "Failed to configure SSH."
+        exit 1
+    fi
     log "SUCCESS" "SSH configured."
 
     log "INFO" "Creating dock command..."
     configdock
+    if [ $? -ne 0 ]; then
+        log "ERROR" "Failed to create dock command."
+        exit 1
+    fi
     log "SUCCESS" "Dock command created."
 
     log "INFO" "Creating chowndir command..."
     configdirown
+    if [ $? -ne 0 ]; then
+        log "ERROR" "Failed to create chowndir command."
+        exit 1
+    fi
     log "SUCCESS" "Chowndir command created."
 
     log "INFO" "Creating and configuring users..."
     createusers
+    if [ $? -ne 0 ]; then
+        log "ERROR" "Failed to create users."
+        exit 1
+    fi
     log "SUCCESS" "Users created."
 
     log "INFO" "Installing Docker engine..."
     installdocker
+    if [ $? -ne 0 ]; then
+        log "ERROR" "Failed to install Docker engine."
+        exit 1
+    fi
     log "SUCCESS" "Docker engine installed."
 
     log "INFO" "Configuring Docker..."
     configdocker
+    if [ $? -ne 0 ]; then
+        log "ERROR" "Failed to configure Docker."
+        exit 1
+    fi
     log "SUCCESS" "Docker configured."
 
     configusers
+    if [ $? -ne 0 ]; then
+        log "ERROR" "Failed to configure users."
+        exit 1
+    fi
     log "SUCCESS" "Users configured."
 }
 
