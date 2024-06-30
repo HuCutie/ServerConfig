@@ -323,6 +323,18 @@ configusers() {
     done
 }
 
+# Function to create the 'neofetch' command with 'lolcat' output
+configneofetch() {
+    local file_path="/etc/profile.d/neofetch.sh"
+    local content='#!/bin/sh
+neofetch | lolcat'
+
+    echo "$content" | sudo tee "$file_path" > /dev/null
+    sudo chmod +x "$file_path"
+    log "SUCCESS" "Neofetch script has been created at $file_path."
+    return 0
+}
+
 # Main function
 main() {
     log "INFO" "Mounting disks..."
@@ -395,6 +407,14 @@ main() {
         exit 1
     fi
     log "SUCCESS" "Users configured."
+
+    log "INFO" "Creating neofetch configuration..."
+    configneofetch
+    if [ $? -ne 0 ]; then
+        log "ERROR" "Failed to create neofetch configuration."
+        exit 1
+    fi
+    log "SUCCESS" "Neofetch configuration created."
 }
 
 main
