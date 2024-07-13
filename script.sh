@@ -168,16 +168,23 @@ GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 RESET='\033[0m'
 
-read -p "请输入PID: " pid
+while true; do
+    read -p "请输入PID: " pid
 
-container_id=$(cat /proc/$pid/cgroup | grep -oP '/docker/\K.{12}')
-container_name=$(docker ps --no-trunc --format '{{.Names}}' --filter "id=$container_id")
+    if ! [[ $pid =~ ^[0-9]+$ ]]; then
+        echo -e "${YELLOW}无效的PID，请输入一个有效的数字。${RESET}"
+        continue
+    fi
 
-if [ -n "$container_name" ]; then
-    echo -e "PID ${RED}$pid${RESET} 所属的容器名称为: ${GREEN}$container_name${RESET}"
-else
-    echo -e "PID ${RED}$pid${RESET} 不属于任何容器."
-fi
+    container_id=$(cat /proc/$pid/cgroup | grep -oP '/docker/\K.{12}')
+    container_name=$(docker ps --no-trunc --format '{{.Names}}' --filter "id=$container_id")
+
+    if [ -n "$container_name" ]; then
+        echo -e "PID ${RED}$pid${RESET} 所属的容器名称为: ${GREEN}$container_name${RESET}"
+    else
+        echo -e "PID ${RED}$pid${RESET} 不属于任何容器."
+    fi
+done
 EOF
 
     chmod +x "$script_path"
