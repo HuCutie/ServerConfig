@@ -41,9 +41,18 @@ mountdisks() {
     fi
 
     for ((i=0; i<${#devices[@]}; i++)); do
-        echo "y" | mkfs -t ext4 "${devices[$i]}"
         local device="${devices[$i]}"
         local mount_point="${mount_points[$i]}"
+
+        # Prompt user to decide whether to format the device
+        read -p "Do you want to format $device as ext4? (yes/no): " format_choice
+        if [ "$format_choice" == "yes" ]; then
+            echo "y" | mkfs -t ext4 "$device"
+        elif [ "$format_choice" != "no" ]; then
+            log "WARNING" "Invalid choice. Skipping formatting for $device."
+            continue
+        fi
+
         mkdir -p "$mount_point"
         chmod 777 "$mount_point"
 
@@ -67,6 +76,7 @@ mountdisks() {
         fi
     done
 }
+
 
 # Function to install Docker
 installdocker() {
