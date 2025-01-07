@@ -178,22 +178,36 @@ GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 RESET='\033[0m'
 
-while true; do
-    read -p "请输入PID: " pid
+echo -e "${GREEN}GPU 上的进程和对应的容器信息：${RESET}"
 
-    if ! [[ $pid =~ ^[0-9]+$ ]]; then
-        echo -e "${YELLOW}无效的PID，请输入一个有效的数字。${RESET}"
+# 获取 GPU 数量
+gpu_count=$(nvidia-smi --query-gpu=index --format=csv,noheader | wc -l)
+
+for ((gpu=0; gpu<gpu_count; gpu++)); do
+    # 获取当前 GPU 上的所有进程
+    gpu_processes=$(nvidia-smi --query-compute-apps=pid --format=csv,noheader --id=$gpu)
+
+    # 检查是否有进程在当前 GPU 上运行
+    if [ -z "$gpu_processes" ]; then
         continue
     fi
 
-    container_id=$(cat /proc/$pid/cgroup | grep -oP '/docker/\K.{12}')
-    container_name=$(docker ps --no-trunc --format '{{.Names}}' --filter "id=$container_id")
+    echo -e "${YELLOW}GPU ${gpu}:${RESET}"
 
-    if [ -n "$container_name" ]; then
-        echo -e "PID ${RED}$pid${RESET} 所属的容器名称为: ${GREEN}$container_name${RESET}"
-    else
-        echo -e "PID ${RED}$pid${RESET} 不属于任何容器."
-    fi
+    for pid in $gpu_processes; do
+        if [ -e /proc/$pid/cgroup ]; then
+            container_id=$(cat /proc/$pid/cgroup | grep -oP '/docker/\K.{12}')
+            container_name=$(docker ps --no-trunc --format '{{.Names}}' --filter "id=$container_id")
+
+            if [ -n "$container_name" ]; then
+                echo -e "  PID ${RED}$pid${RESET} 所属的容器名称为: ${GREEN}$container_name${RESET}"
+            else
+                echo -e "  PID ${RED}$pid${RESET} 不属于任何容器。"
+            fi
+        else
+            echo -e "  PID ${RED}$pid${RESET} 进程不存在或已终止。"
+        fi
+    done
 done
 EOF
 
