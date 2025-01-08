@@ -176,9 +176,11 @@ configdock() {
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
 RESET='\033[0m'
 
-echo -e "${GREEN}GPU 上的进程和对应的容器信息：${RESET}"
+printf "${GREEN}GPU 上的进程和对应的容器信息：${RESET}\n\n"
 
 # 获取 GPU 数量
 gpu_count=$(nvidia-smi --query-gpu=index --format=csv,noheader | wc -l)
@@ -192,27 +194,50 @@ for ((gpu=0; gpu<gpu_count; gpu++)); do
         continue
     fi
 
-    echo -e "${YELLOW}GPU ${gpu}:${RESET}"
+    # 获取当前 GPU 的显存信息
+    mem_used=$(nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits --id=$gpu)
+    mem_total=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits --id=$gpu)
+
+    # 计算显存使用百分比
+    mem_usage_percent=$(awk "BEGIN {printf \"%.1f\", ($mem_used/$mem_total)*100}")
+    mem_used_gb=$(awk "BEGIN {printf \"%.2f\", $mem_used/1024}")
+    mem_total_gb=$(awk "BEGIN {printf \"%.2f\", $mem_total/1024}")
+
+    # 打印GPU的显存使用情况
+    printf "${YELLOW}GPU ${gpu}（显存使用: ${mem_used_gb}GB/${mem_total_gb}GB ${mem_usage_percent}%%）：${RESET}\n"
 
     for pid in $gpu_processes; do
         if [ -e /proc/$pid/cgroup ]; then
             container_id=$(cat /proc/$pid/cgroup | grep -oP '/docker/\K.{12}')
             container_name=$(docker ps --no-trunc --format '{{.Names}}' --filter "id=$container_id")
 
+            # 获取当前进程的显存使用
+            gpu_mem_usage=$(nvidia-smi --query-compute-apps=pid,used_memory --format=csv,noheader --id=$gpu)
+            gpu_mem_usage=$(echo "$gpu_mem_usage" | grep -w "$pid" | awk '{print $2}')
+            gpu_mem_usage_gb=$(awk "BEGIN {printf \"%.2f\", $gpu_mem_usage/1024}")
+
+            # 计算显存的使用百分比
+            gpu_mem_usage_percent=$(awk "BEGIN {printf \"%.1f\", ($gpu_mem_usage/$mem_total)*100}")
+
+            # 格式化输出
+            container_info="无"
             if [ -n "$container_name" ]; then
-                echo -e "  PID ${RED}$pid${RESET} 所属的容器名称为: ${GREEN}$container_name${RESET}"
-            else
-                echo -e "  PID ${RED}$pid${RESET} 不属于任何容器。"
+                container_info=$container_name
             fi
+
+            # 输出每个PID的显存使用情况
+            printf "  PID: ${RED}%-8s${RESET} 容器: ${GREEN}%-25s${RESET}" "$pid" "$container_info"
+            printf "  显存使用: ${BLUE}%-6sGB${RESET} (${gpu_mem_usage_percent}%%)\n" "$gpu_mem_usage_gb"
         else
-            echo -e "  PID ${RED}$pid${RESET} 进程不存在或已终止。"
+            printf "  PID ${RED}%-8s${RESET} 进程不存在或已终止。\n" "$pid"
         fi
     done
+    printf "\n"
 done
 EOF
 
     chmod +x "$script_path"
-    log "SUCCESS" "Script has been installed and created at $script_path, now you can run command 'dock'."
+    log "SUCCESS" "Script has been installed and created at $script_path, now you can run the command 'dock'."
 }
 
 # Function to create the 'chowndir' command
