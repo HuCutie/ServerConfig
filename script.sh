@@ -211,13 +211,8 @@ for ((gpu=0; gpu<gpu_count; gpu++)); do
             container_id=$(cat /proc/$pid/cgroup | grep -oP '/docker/\K.{12}')
             container_name=$(docker ps --no-trunc --format '{{.Names}}' --filter "id=$container_id")
 
-            # 获取当前进程的显存使用
-            gpu_mem_usage=$(nvidia-smi --query-compute-apps=pid,used_memory --format=csv,noheader --id=$gpu)
-            gpu_mem_usage=$(echo "$gpu_mem_usage" | grep -w "$pid" | awk '{print $2}')
-            gpu_mem_usage_gb=$(awk "BEGIN {printf \"%.2f\", $gpu_mem_usage/1024}")
-
-            # 计算显存的使用百分比
-            gpu_mem_usage_percent=$(awk "BEGIN {printf \"%.1f\", ($gpu_mem_usage/$mem_total)*100}")
+            # 获取当前进程的运行时间
+            run_time=$(ps -p $pid -o etime=)
 
             # 格式化输出
             container_info="无"
@@ -225,9 +220,9 @@ for ((gpu=0; gpu<gpu_count; gpu++)); do
                 container_info=$container_name
             fi
 
-            # 输出每个PID的显存使用情况
+            # 输出每个PID的运行时间
             printf "  PID: ${RED}%-8s${RESET} 容器: ${GREEN}%-25s${RESET}" "$pid" "$container_info"
-            printf "  显存使用: ${BLUE}%-6sGB${RESET} (${gpu_mem_usage_percent}%%)\n" "$gpu_mem_usage_gb"
+            printf "  运行时间: ${BLUE}%-10s${RESET}\n" "$run_time"
         else
             printf "  PID ${RED}%-8s${RESET} 进程不存在或已终止。\n" "$pid"
         fi
